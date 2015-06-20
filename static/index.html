@@ -35,12 +35,14 @@
     <!-- Map creation is here -->
     <script type="text/javascript">
         // Defining global variables to access from other functions
-        var files, num;
+        var map, files, num, points;
+        var circles = [];
 
         $.ajax({
             url: 'api/datapoints',
             type: 'GET',
             success: function (data) {
+                points = data.objects;
                 num = data.num_results;
             }
         });
@@ -68,7 +70,7 @@
             var mapElement = document.getElementById('map');
 
             // Creating a map with DOM element which is just obtained
-            var map = new google.maps.Map(mapElement, mapOptions);
+            map = new google.maps.Map(mapElement, mapOptions);
 
             toggleRemoveButtonDisplay(num);
             toggleInfoDisplay(num);
@@ -82,12 +84,17 @@
                 $('select#schematic').append(option);
             }
 
+            for (var i = 0; i < points.length; i++) {
+                var point = points[i];
+                addCircle(point);
+            }
+
             // add map listener to index get geo-points
             google.maps.event.addListener(map, 'click', function (e) {
                 var lat = e.latLng.lat();
                 var lng = e.latLng.lng();
                 var type = $('#schematic').val();
-                
+
                 addPoint(lat, lng, type);
                 num++;
                 toggleRemoveButtonDisplay(num);
@@ -124,8 +131,30 @@
                     "lat": lat,
                     "long": long,
                     "schematic": type
-                })
+                }),
+                success: function (data) {
+                    addCircle(data);
+                }
             });
+        };
+
+        // add a circle to the map
+        var addCircle = function (point) {
+            // Defining options for circle
+            var options = {
+                strokeColor: '#FF0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#FF0000',
+                fillOpacity: 0.35,
+                map: map,
+                radius: 3,
+                center: new google.maps.LatLng(point.lat, point.long)
+            };
+
+            // Add point to map
+            var circle = new google.maps.Circle(options);
+            circles.push(circle);
         };
 
         // delete a geo-point from the database
@@ -136,7 +165,11 @@
                     'Content-Type': 'application/json'
                 },
                 url: 'api/datapoints/' + idx,
-                type: 'DELETE'
+                type: 'DELETE',
+                success: function () {
+                    var circle = circles.pop();
+                    circle.setMap(null);
+                }
             });
         };
 
