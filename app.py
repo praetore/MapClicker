@@ -1,5 +1,6 @@
 import csv
 from tempfile import NamedTemporaryFile
+
 from flask import Flask, send_file
 from flask.ext.restful import Resource, Api
 from flask.ext.restless import APIManager
@@ -10,16 +11,18 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///points.db'
 api = Api(app)
 db = SQLAlchemy(app)
 
-with open('filenames.csv', 'r') as f:
-    reader = csv.reader(f)
-    schematicfiles = [{'filename': row[0], 'type': row[1]} for row in reader]
-
 
 class Schematic(Resource):
+    def __init__(self):
+        super().__init__()
+        with open('filenames.csv', 'r') as f:
+            reader = csv.reader(f)
+            self.schematicfiles = [{'filename': row[0], 'type': row[1]} for row in reader]
+
     def get(self):
         return {
-            'num_results': len(schematicfiles),
-            'objects': schematicfiles
+            'num_results': len(self.schematicfiles),
+            'objects': self.schematicfiles
         }
 
 
@@ -36,7 +39,7 @@ db.create_all()
 api.add_resource(Schematic, '/api/schematics')
 
 manager = APIManager(app, flask_sqlalchemy_db=db)
-manager.create_api(Point, methods=['GET', 'POST', 'DELETE'])
+manager.create_api(Point, methods=['GET', 'POST', 'DELETE'], results_per_page=0)
 
 
 @app.route('/')
