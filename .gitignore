@@ -110,3 +110,4 @@ target/
 
 # Project-specific files
 points.db
+filenames.csv

@@ -12,29 +12,30 @@
         body {
             font-family: Arial, sans-serif;
         }
+
         html {
             height: 100%
         }
+
         body {
             height: 100%;
             margin: 0;
         }
-        #mapDiv {
+
+        #map {
             width: 100%;
             height: 100%;
         }
-        #num {
+
+        p#num {
             float: left;
             margin: 10px;
         }
     </style>
     <!-- Map creation is here -->
     <script type="text/javascript">
-        var infowindow = null;
-        //Defining map as a global variable to access from
-        //other functions
-        var lat, lng, map;
-        var num = 0;
+        //Defining map as a global variable to access from other functions
+        var lat, lng, map, files, num;
 
         $.ajax({
             url: 'api/datapoints',
@@ -44,7 +45,13 @@
             }
         });
 
-        $('#num').html(num + ' coordinaten geindexeerd');
+        $.ajax({
+            url: 'api/schematics',
+            type: 'GET',
+            success: function (data) {
+                files = data.objects;
+            }
+        });
 
         function initMap() {
             //Enabling new cartography and themes
@@ -53,39 +60,57 @@
             var mapOptions = {
                 center: new google.maps.LatLng(51.958581, 4.024580),
                 zoom: 13,
-                mapTypeId: google.maps.MapTypeId.ROADMAP
+                mapTypeId: google.maps.MapTypeId.SATELLITE,
+                streetViewControl: false
             };
+
             //Getting map DOM element
-            var mapElement = document.getElementById('mapDiv');
+            var mapElement = document.getElementById('map');
+
             //Creating a map with DOM element which is just obtained
             map = new google.maps.Map(mapElement, mapOptions);
 
-            toggleButtonDisplay(num);
+            toggleRemoveButtonDisplay(num);
             toggleInfoDisplay(num);
+            toggleExportButtonDisplay(num);
 
+            // display options of schematicfiles to add to geo-point
+            for (var i = 0; i < files.length; i++) {
+                var option = $('<option></option>')
+                        .attr("value", files[i].filename)
+                        .text(files[i].type);
+                $('select#schematic').append(option);
+            }
+
+            // add map listener to index get geo-points
             google.maps.event.addListener(map, 'click', function (e) {
                 lat = e.latLng.lat();
                 lng = e.latLng.lng();
 
                 addPoint(lat, lng);
                 num++;
-                toggleButtonDisplay(num);
+                toggleRemoveButtonDisplay(num);
                 toggleInfoDisplay(num);
+                toggleExportButtonDisplay(num);
             });
 
+            // add a listener to remove last geo-point from database
             $('button#remove').click(function () {
-                deleteLastPoint(num);
+                deletePoint(num);
                 num--;
-                toggleButtonDisplay(num);
+                toggleRemoveButtonDisplay(num);
                 toggleInfoDisplay(num);
+                toggleExportButtonDisplay(num);
             });
 
+            // add a listener to export all indexed geo-points to csv
             $('button#export').click(function () {
                 location.href = '/export'
             })
         }
         google.maps.event.addDomListener(window, 'load', initMap);
 
+        // add a geo-point to database
         var addPoint = function (lat, long) {
             var schematic = $('#schematic').val();
             $.ajax({
@@ -103,7 +128,8 @@
             });
         };
 
-        var deleteLastPoint = function (idx) {
+        // delete a geo-point from the database
+        var deletePoint = function (idx) {
             $.ajax({
                 headers: {
                     'Accept': 'application/json',
@@ -114,37 +140,45 @@
             });
         };
 
-        var toggleButtonDisplay = function (num) {
-            if (num == 0) {
-                $('button#remove').hide();
+        // toggle the display of the remove button
+        var toggleRemoveButtonDisplay = function (num) {
+            var elem = $('button#remove');
+            if (num > 0) {
+                elem.show();
             } else {
-                $('button#remove').show();
+                elem.hide();
             }
         };
 
-        var toggleInfoDisplay = function (num) {
+        // toggle the display of the remove button
+        var toggleExportButtonDisplay = function (num) {
+            var elem = $('button#export');
             if (num > 0) {
-                $('p#num').show();
+                elem.show();
             } else {
-                $('p#num').hide();
+                elem.hide();
             }
-            $('p#num').html(num + ' coordinaten geindexeerd');
+        };
+
+        // toggle the display of number of indexed geo-points
+        var toggleInfoDisplay = function (num) {
+            var elem = $('p#num');
+            if (num > 0) {
+                elem.show();
+            } else {
+                elem.hide();
+            }
+            elem.html(num + ' coordinaten geindexeerd');
         };
     </script>
 </head>
 <body>
 <div id="selectSchematic">
+    <select name="schematic" id="schematic"></select>
     <button id="export">Exporteren naar csv</button>
-    <select name="schematic" id="schematic">
-        <option value="pointytower.schematic">Silo</option>
-        <option value="Gebouw 2">Gebouw 2</option>
-        <option value="Gebouw 3">Gebouw 3</option>
-        <option value="Gebouw 4">Gebouw 4</option>
-        <option value="Gebouw 5">Gebouw 5</option>
-    </select>
-    <p id="num"></p>
     <button id="remove">Laatste punt verwijderen</button>
+    <p id="num"></p>
 </div>
-<div id="mapDiv"></div>
+<div id="map"></div>
 </body>
 </html>
