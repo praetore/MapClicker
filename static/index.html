@@ -35,8 +35,10 @@
     <!-- Map creation is here -->
     <script type="text/javascript">
         // Defining global variables to access from other functions
-        var map, files, num, points;
-        var circles = [];
+        var map, num;
+        var circles = [],
+            points = [],
+            files = [];
 
         $.ajax({
             url: 'api/datapoints',
@@ -79,7 +81,7 @@
             // display options of schematicfiles to add to geo-point
             for (var i = 0; i < files.length; i++) {
                 var option = $('<option></option>')
-                        .attr("value", files[i].filename)
+                        .attr("value", files[i].type)
                         .text(files[i].type);
                 $('select#schematic').append(option);
             }
@@ -130,7 +132,7 @@
                 data: JSON.stringify({
                     "lat": lat,
                     "long": long,
-                    "schematic": type
+                    "type": type
                 }),
                 success: function (data) {
                     addCircle(data);
@@ -140,15 +142,25 @@
 
         // add a circle to the map
         var addCircle = function (point) {
+            var color;
+            var radius;
+            for (var i = 0; i < files.length; i++) {
+                var option = files[i];
+                if (option.type == point.type) {
+                    color = option.color;
+                    radius = parseInt(option.radius);
+                }
+            }
+
             // Defining options for circle
             var options = {
-                strokeColor: '#FF0000',
+                strokeColor: color,
                 strokeOpacity: 0.8,
                 strokeWeight: 2,
-                fillColor: '#FF0000',
+                fillColor: color,
                 fillOpacity: 0.35,
                 map: map,
-                radius: 3,
+                radius: radius,
                 center: new google.maps.LatLng(point.lat, point.long)
             };
 

@@ -1,13 +1,13 @@
 import csv
 from tempfile import NamedTemporaryFile
 
-from flask import Flask, send_file
+from flask import Flask, send_file, request
 from flask.ext.restful import Resource, Api
 from flask.ext.restless import APIManager
 from flask.ext.sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///points.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 api = Api(app)
 db = SQLAlchemy(app)
 
@@ -15,9 +15,9 @@ db = SQLAlchemy(app)
 class Schematic(Resource):
     def __init__(self):
         super().__init__()
-        with open('filenames.csv', 'r') as f:
+        with open('options.csv', 'r') as f:
             reader = csv.reader(f)
-            self.schematicfiles = [{'filename': row[0], 'type': row[1]} for row in reader]
+            self.schematicfiles = [{'type': row[0], 'color': row[1], 'radius': row[2]} for row in reader]
 
     def get(self):
         return {
@@ -31,7 +31,7 @@ class Point(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     lat = db.Column(db.Float, nullable=False)
     long = db.Column(db.Float, nullable=False)
-    schematic = db.Column(db.String, nullable=False)
+    type = db.Column(db.String, nullable=False)
 
 
 db.create_all()

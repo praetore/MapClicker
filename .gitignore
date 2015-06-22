@@ -109,5 +109,4 @@ docs/_build/
 target/
 
 # Project-specific files
-points.db
-filenames.csv
+app.db
