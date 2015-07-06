@@ -52,7 +52,9 @@ def export():
     points = Point.query.all()
     with NamedTemporaryFile('w+t', delete=False, suffix='.csv') as f:
         wr = csv.writer(f, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-        [wr.writerow([getattr(record, column.name) for column in Point.__mapper__.columns]) for record in points]
+        wr.writerow(['lat', 'long', 'type'])
+        [wr.writerow([getattr(record, column.name) for column in Point.__mapper__.columns if column.name != 'id']) for
+         record in points]
         fname = f.name
     return send_file(fname, as_attachment=True)
 

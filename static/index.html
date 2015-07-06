@@ -38,28 +38,12 @@
         var map, num;
         var circles = [],
                 points = [],
-                files = [];
-
-        $.ajax({
-            url: 'api/datapoints',
-            type: 'GET',
-            success: function (data) {
-                points = data.objects;
-                num = data.num_results;
-            }
-        });
-
-        $.ajax({
-            url: 'api/schematics',
-            type: 'GET',
-            success: function (data) {
-                files = data.objects;
-            }
-        });
+                files = {};
 
         function initMap() {
             // Enabling new cartography and themes
             google.maps.visualRefresh = true;
+
             // Setting starting options of map
             var mapOptions = {
                 center: new google.maps.LatLng(51.958581, 4.024580),
@@ -74,22 +58,38 @@
             // Creating a map with DOM element which is just obtained
             map = new google.maps.Map(mapElement, mapOptions);
 
-            toggleRemoveButtonDisplay(num);
-            toggleInfoDisplay(num);
-            toggleExportButtonDisplay(num);
+            $.when($.ajax({
+                url: 'api/schematics',
+                type: 'GET'
+            })).done(function (data) {
+                // display options of schematicfiles to add to geo-point
+                for (var i = 0; i < data.num_results; i++) {
+                    var type = data.objects[i].type;
+                    var option = $('<option></option>')
+                            .attr("value", type)
+                            .text(type);
+                    $('select#schematic').append(option);
+                    files[type] = data.objects[i];
+                }
+            });
 
-            // display options of schematicfiles to add to geo-point
-            for (var i = 0; i < files.length; i++) {
-                var option = $('<option></option>')
-                        .attr("value", files[i].type)
-                        .text(files[i].type);
-                $('select#schematic').append(option);
-            }
+            $.when($.ajax({
+                url: 'api/datapoints',
+                type: 'GET'
+            })).done(function (data) {
+                points = data.objects;
+                num = data.num_results;
+                for (var i = 0; i < num; i++) {
+                    var point = points[i];
+                    var file = files[point.type];
+                    drawCircle(point, file);
+                }
 
-            for (var i = 0; i < points.length; i++) {
-                var point = points[i];
-                addCircle(point);
-            }
+                // Init info display
+                toggleRemoveButtonDisplay(num);
+                toggleInfoDisplay(num);
+                toggleExportButtonDisplay(num);
+            });
 
             // add map listener to index get geo-points
             google.maps.event.addListener(map, 'click', function (e) {
@@ -115,14 +115,15 @@
 
             // add a listener to export all indexed geo-points to csv
             $('button#export').click(function () {
-                location.href = '/export'
-            })
+                location.href = '/export';
+            });
         }
+
         google.maps.event.addDomListener(window, 'load', initMap);
 
         // add a geo-point to database
         var addPoint = function (lat, long, type) {
-            $.ajax({
+            $.when($.ajax({
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
@@ -133,24 +134,17 @@
                     "lat": lat,
                     "long": long,
                     "type": type
-                }),
-                success: function (data) {
-                    addCircle(data);
-                }
+                })
+            })).done(function (data) {
+                var file = files[data.type];
+                drawCircle(data, file);
             });
         };
 
         // add a circle to the map
-        var addCircle = function (point) {
-            var color;
-            var radius;
-            for (var i = 0; i < files.length; i++) {
-                var option = files[i];
-                if (option.type == point.type) {
-                    color = option.color;
-                    radius = parseInt(option.radius);
-                }
-            }
+        var drawCircle = function (point, file) {
+            var color = file.color;
+            var radius = parseInt(file.radius);
 
             // Defining options for circle
             var options = {
