@@ -1,4 +1,5 @@
 import csv
+import os
 from tempfile import NamedTemporaryFile
 
 from flask import Flask, send_file
@@ -11,11 +12,13 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 api = Api(app)
 db = SQLAlchemy(app)
 
+ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
+
 
 class Schematic(Resource):
     def __init__(self):
         super().__init__()
-        with open('options.csv', 'r') as f:
+        with open(os.path.join(ROOT_DIR, 'options.csv'), 'r') as f:
             reader = csv.reader(f)
             self.schematicfiles = [{'type': row[0], 'color': row[1], 'radius': row[2]} for row in reader]
 
