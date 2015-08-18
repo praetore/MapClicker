@@ -2,7 +2,7 @@ import csv
 import os
 from tempfile import NamedTemporaryFile
 
-from flask import Flask, send_file, send_from_directory
+from flask import Flask, send_file
 from flask.ext.restful import Resource, Api
 from flask.ext.restless import APIManager
 from flask.ext.sqlalchemy import SQLAlchemy
