@@ -2,12 +2,12 @@ import csv
 import os
 from tempfile import NamedTemporaryFile
 
-from flask import Flask, send_file
+from flask import Flask, send_file, send_from_directory
 from flask.ext.restful import Resource, Api
 from flask.ext.restless import APIManager
 from flask.ext.sqlalchemy import SQLAlchemy
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 api = Api(app)
 db = SQLAlchemy(app)
@@ -42,12 +42,22 @@ db.create_all()
 api.add_resource(Schematic, '/api/schematics')
 
 manager = APIManager(app, flask_sqlalchemy_db=db)
-manager.create_api(Point, methods=['GET', 'POST', 'DELETE'], results_per_page=0)
+manager.create_api(Point, methods=['GET', 'POST', 'DELETE', 'PUT', 'HEAD'], results_per_page=0)
 
 
 @app.route('/')
 def index():
     return app.send_static_file('index.html')
+
+
+@app.route('/js/<path:path>')
+def send_js(path):
+    return app.send_static_file(os.path.join('js', path).replace('\\', '/')), 200
+
+
+@app.route('/css/<path:path>')
+def send_css(path):
+    return app.send_static_file(os.path.join('css', path).replace('\\', '/')), 200
 
 
 @app.route('/export')
