@@ -7,7 +7,7 @@ from flask.ext.restless import APIManager
 from flask.ext.sqlalchemy import SQLAlchemy
 
 app = Flask(__name__, static_url_path='')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('OPENSHIFT_POSTGRESQL_DB_URL', 'sqlite:///app.db')
 db = SQLAlchemy(app)
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -64,5 +64,4 @@ def export():
 
 
 if __name__ == '__main__':
-    app.debug = True
     app.run()

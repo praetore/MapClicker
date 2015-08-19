@@ -110,3 +110,4 @@ target/
 
 # Project-specific files
 app.db
+options.csv
