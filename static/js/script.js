@@ -2,7 +2,7 @@
 var map, num;
 var circles = [],
         points = [],
-        files = {};
+        schematics = {};
 
 function initMap() {
     // Enabling new cartography and themes
@@ -22,25 +22,30 @@ function initMap() {
     // Creating a map with DOM element which is just obtained
     map = new google.maps.Map(mapElement, mapOptions);
 
-    $.when($.ajax({
-        url: 'api/schematics',
-        type: 'GET'
-    })).done(function (data) {
+    $.when(
+        $.ajax({
+            url: 'api/schematics',
+            type: 'GET'
+        })
+    ).done(function (data) {
         // display options of schematicfiles to add to geo-point
         for (var i = 0; i < data.num_results; i++) {
-            var type = data.objects[i].type;
+            var type = data.objects[i].schematic;
             var option = $('<option></option>')
-                    .attr("value", type)
-                    .text(type);
+                .attr("value", type)
+                .text(type);
             $('select#schematic').append(option);
-            files[type] = data.objects[i];
+            schematics[type] = data.objects[i];
         }
+        toggleSchematicSelectDisplay(Object.keys(schematics).length);
     });
 
-    $.when($.ajax({
-        url: 'api/datapoints',
-        type: 'GET'
-    })).done(function (data) {
+    $.when(
+        $.ajax({
+            url: 'api/datapoints',
+            type: 'GET'
+        })
+    ).done(function (data) {
         points = data.objects;
         num = data.num_results;
 
@@ -50,8 +55,8 @@ function initMap() {
         // Add indexed circles to map
         for (var i = 0; i < num; i++) {
             var point = points[i];
-            var file = files[point.type];
-            drawCircle(point, file);
+            var type = schematics[point.type];
+            drawCircle(point, type);
         }
     });
 
@@ -60,12 +65,11 @@ function initMap() {
         var lat = e.latLng.lat();
         var lng = e.latLng.lng();
         var type = $('#schematic').val();
-
         addPoint(lat, lng, type);
     });
 
     // add a listener to remove last geo-point from database
-    $('button#remove').click(function () {
+    $('button#remove-last').click(function () {
         deletePoint(num);
     });
 
@@ -81,21 +85,11 @@ function initMap() {
     });
 }
 
-var toggleExtraOptionsDisplay = function (val) {
-    $('span#num-option').hide();
-    $('button#remove').hide();
-    if (val == 'multiple-placement') {
-        $('span#num-option').show();
-    } else if (val == 'single-placement') {
-        $('button#remove').show();
-    }
-};
-
 google.maps.event.addDomListener(window, 'load', initMap);
 
 // add a geo-point to database
 var addPoint = function (lat, long, type) {
-    $.when($.ajax({
+    $.ajax({
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
@@ -106,12 +100,13 @@ var addPoint = function (lat, long, type) {
             "lat": lat,
             "long": long,
             "type": type
-        })
-    })).done(function (data) {
-        var file = files[data.type];
-        drawCircle(data, file);
-        num++;
-        toggleInfoDisplays(num);
+        }),
+        success: function (data) {
+            var file = schematics[data.type];
+            drawCircle(data, file);
+            num++;
+            toggleInfoDisplays(num);
+        }
     });
 };
 
@@ -139,16 +134,14 @@ var drawCircle = function (point, file) {
     google.maps.event.addListener(circle, 'click', function () {
         var canDelete = $('select#input-options').val() == 'single-delete';
         if (canDelete) {
-            var lat = circle.getCenter().lat();
-            var lng = circle.getCenter().lng();
-            deletePointByCoords(lat, lng);
+            deletePointBySelection(circle);
         }
     });
     circles.push(circle);
 };
 
 // delete a geo-point from the database
-var deletePoint = function (idx) {
+var deletePoint = function (idx, circle) {
     $.ajax({
         headers: {
             'Accept': 'application/json',
@@ -157,7 +150,9 @@ var deletePoint = function (idx) {
         url: 'api/datapoints/' + idx,
         type: 'DELETE',
         success: function () {
-            var circle = circles.pop();
+            if (circle == null) {
+                circle = circles.pop();
+            }
             circle.setMap(null);
             num--;
             toggleInfoDisplays(num);
@@ -165,7 +160,9 @@ var deletePoint = function (idx) {
     });
 };
 
-var deletePointByCoords = function (lat, lng) {
+var deletePointBySelection = function (circle) {
+    var lat = circle.getCenter().lat();
+    var lng = circle.getCenter().lng();
     var filters = [{
             'name': 'lat',
             'op': 'eq',
@@ -186,8 +183,8 @@ var deletePointByCoords = function (lat, lng) {
         dataType: "json",
         type: 'GET',
         success: function (data) {
-            var id = data.objects[0].id;
-            deletePoint(id);
+            var idx = data.objects[0].id;
+            deletePoint(idx, circle);
         }
     });
 };
@@ -199,10 +196,24 @@ var toggleInfoDisplays = function (num) {
     toggleExportButtonDisplay(num);
 };
 
+// toggle visibility of elements belonging to certain dropdown options
+var toggleExtraOptionsDisplay = function (val) {
+    $('span#num-option').hide();
+    $('button#remove').hide();
+    $('select#schematic').hide();
+    if (val == 'multiple-placement') {
+        $('span#num-option').show();
+    } else if (val == 'single-placement') {
+        if (num > 0) {
+            $('button#remove').show();
+        }
+        $('select#schematic').show();
+    }
+};
 
 // toggle the display of the remove button
 var toggleRemoveButtonDisplay = function (num) {
-    var elem = $('button#remove');
+    var elem = $('button#remove-last');
     if (num > 0) {
         elem.show();
     } else {
@@ -213,6 +224,16 @@ var toggleRemoveButtonDisplay = function (num) {
 // toggle the display of the remove button
 var toggleExportButtonDisplay = function (num) {
     var elem = $('button#export');
+    if (num > 0) {
+        elem.show();
+    } else {
+        elem.hide();
+    }
+};
+
+// toggle the display of the schematic selection dropdown
+var toggleSchematicSelectDisplay = function (num) {
+    var elem = $('select#schematic');
     if (num > 0) {
         elem.show();
     } else {

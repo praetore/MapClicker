@@ -1,19 +1,17 @@
+html, body, #map {
+    height: 100%;
+}
+
 body {
     font-family: Arial, sans-serif;
 }
 
-html {
-    height: 100%;
-}
-
 body {
-    height: 100%;
     margin: 0;
 }
 
 #map {
     width: 100%;
-    height: 100%;
 }
 
 form#selections {
@@ -24,11 +22,7 @@ div#selectSchematic {
     height: 50px;
 }
 
-span#num-option {
-    display: none;
-}
-
-button#remove {
+button#remove-last, span#num-option, select#schematic, button#remove-last {
     display: none;
 }
 

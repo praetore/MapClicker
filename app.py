@@ -3,30 +3,22 @@ import os
 from tempfile import NamedTemporaryFile
 
 from flask import Flask, send_file
-from flask.ext.restful import Resource, Api
 from flask.ext.restless import APIManager
 from flask.ext.sqlalchemy import SQLAlchemy
 
 app = Flask(__name__, static_url_path='')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
-api = Api(app)
 db = SQLAlchemy(app)
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
-class Schematic(Resource):
-    def __init__(self):
-        super().__init__()
-        with open(os.path.join(ROOT_DIR, 'options.csv'), 'r') as f:
-            reader = csv.reader(f)
-            self.schematicfiles = [{'type': row[0], 'color': row[1], 'radius': row[2]} for row in reader]
-
-    def get(self):
-        return {
-            'num_results': len(self.schematicfiles),
-            'objects': self.schematicfiles
-        }
+class Schematic(db.Model):
+    __tablename__ = 'schematics'
+    id = db.Column(db.Integer, primary_key=True)
+    schematic = db.Column(db.String, nullable=False)
+    color = db.Column(db.String, nullable=False)
+    radius = db.Column(db.Integer, nullable=False)
 
 
 class Point(db.Model):
@@ -39,10 +31,9 @@ class Point(db.Model):
 
 db.create_all()
 
-api.add_resource(Schematic, '/api/schematics')
-
 manager = APIManager(app, flask_sqlalchemy_db=db)
-manager.create_api(Point, methods=['GET', 'POST', 'DELETE', 'PUT', 'HEAD'], results_per_page=0)
+manager.create_api(Point, methods=['GET', 'POST', 'DELETE'], results_per_page=0)
+manager.create_api(Schematic, methods=['GET', 'POST'], results_per_page=0)
 
 
 @app.route('/')
