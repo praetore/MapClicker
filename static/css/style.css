@@ -30,7 +30,7 @@ div#radius-slider {
     margin: 15px;
 }
 
-#swatch {
+#swatch, #swatch-update {
     width: 120px;
     height: 100px;
     margin-top: 18px;
