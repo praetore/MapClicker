@@ -16,7 +16,7 @@
             <ul class="nav navbar-nav">
                 <li class="dropdown" id="input-options-tab">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                       aria-expanded="false">Bewerkingen <span class="caret"></span></a>
+                       aria-expanded="false">Acties <span class="caret"></span></a>
                     <ul class="dropdown-menu" id="input-options">
                         <li><a data-selection="single-placement" href="#">Enkelvoudig plaatsen</a></li>
                         <li><a data-selection="single-delete" href="#">Enkelvoudig verwijderen</a></li>
@@ -27,11 +27,14 @@
                 <li class="dropdown" id="schematics-tab">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
                        aria-expanded="false">Selecteer schematic <span class="caret"></span></a>
-                    <ul class="dropdown-menu"></ul>
+                    <ul class="dropdown-menu">
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#" data-toggle="modal" data-target="#create-schematic">Nieuwe schematic aanmaken</a></li>
+                        <li><a href="#">Bestaande schematic bewerken</a></li>
+                    </ul>
                 </li>
-                <button type="button" class="btn btn-default navbar-btn" id="export">Exporteren naar csv</button>
-                <button type="button" class="btn btn-default navbar-btn"
-                id="remove-last">Laatste punt verwijderen</button>
+                <button type="button" class="btn btn-info navbar-btn" id="export">Exporteren naar csv</button>
+                <button type="button" class="btn btn-danger navbar-btn" id="remove-last">Laatste punt verwijderen</button>
                 <li id="num-option-tab">
                     <form class="navbar-form navbar-left" autocomplete="off">
                         <div class="form-group">
@@ -40,14 +43,104 @@
                         </div>
                     </form>
                 </li>
-                <button type="button" class="btn btn-default navbar-btn" id="place-selection">Plaatsen</button>
-                <button type="button" class="btn btn-default navbar-btn" id="delete-selection">Verwijderen</button>
-                <button type="button" class="btn btn-default navbar-btn" id="cancel-selection">Selectie annuleren</button>
+                <button type="button" class="btn btn-success navbar-btn" id="place-selection">Plaatsen</button>
+                <button type="button" class="btn btn-danger navbar-btn" id="delete-selection">Verwijderen</button>
+                <button type="button" class="btn btn-warning navbar-btn" id="cancel-selection">Selectie annuleren</button>
                 <p class="navbar-text" id="num"></p>
             </ul>
         </div>
     </nav>
     <div id="map"></div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="create-schematic" tabindex="-1" role="dialog" aria-labelledby="create-schematic">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="create-schematic-title">Nieuwe schematic maken</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group clearfix">
+                            <label for="schematic-name">Naam</label>
+                            <input type="text" class="form-control" id="schematic-name" placeholder="Naam van schematic">
+                        </div>
+                        <div class="form-group">
+                            <label for="radius-slider">Grootte</label>
+                            <p id="radius-num">Radius: 0</p>
+                            <div id="radius-slider"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="color-slider">Kleur</label>
+                            <div id="color-slider">
+                                <div id="red"></div>
+                                <div id="green"></div>
+                                <div id="blue"></div>
+
+                                <div id="swatch" class="ui-widget-content ui-corner-all"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Annuleren</button>
+                    <button type="button" class="btn btn-primary" id="button-create-schematic">Aanmaken</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="update-schematic" tabindex="-1" role="dialog" aria-labelledby="update-schematic">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="update-schematic-title">Bestaande schematic bewerken</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group clearfix">
+                            <label for="select-schematic-update">Selecteer een schematic</label>
+                            <div class="dropdown">
+                                <button class="btn btn-default dropdown-toggle" type="button" id="select-schematic-update"
+                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                    Selecteren <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="select-schematic-update"></ul>
+                            </div>
+                        </div>
+                        <div class="form-group clearfix">
+                            <label for="schematic-name-update">Naam</label>
+                            <input type="text" class="form-control" id="schematic-name-update" placeholder="Naam van schematic">
+                        </div>
+                        <div class="form-group">
+                            <label for="radius-slider-update">Grootte</label>
+                            <p id="radius-num-update">Radius: 0</p>
+                            <div id="radius-slider-update"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="color-slider-update">Kleur</label>
+                            <div id="color-slider-update">
+                                <div id="red"></div>
+                                <div id="green"></div>
+                                <div id="blue"></div>
+
+                                <div id="swatch-update" class="ui-widget-content ui-corner-all"></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://code.jquery.com/jquery-2.1.4.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.js"></script>

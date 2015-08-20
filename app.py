@@ -32,8 +32,8 @@ class Point(db.Model):
 db.create_all()
 
 manager = APIManager(app, flask_sqlalchemy_db=db)
-manager.create_api(Point, methods=['GET', 'POST', 'DELETE'], results_per_page=0)
-manager.create_api(Schematic, methods=['GET', 'POST'], results_per_page=0)
+manager.create_api(Point, methods=['GET', 'POST', 'DELETE'], results_per_page=0, allow_delete_many=True)
+manager.create_api(Schematic, methods=['GET', 'POST', 'PUT', 'DELETE'], results_per_page=0)
 
 
 @app.route('/')
