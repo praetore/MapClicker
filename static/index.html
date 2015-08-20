@@ -30,7 +30,7 @@
                     <ul class="dropdown-menu">
                         <li role="separator" class="divider"></li>
                         <li><a href="#" data-toggle="modal" data-target="#create-schematic">Nieuwe schematic aanmaken</a></li>
-                        <li><a href="#">Bestaande schematic bewerken</a></li>
+                        <li><a href="#" data-toggle="modal" data-target="#update-schematic">Bestaande schematic bewerken</a></li>
                     </ul>
                 </li>
                 <button type="button" class="btn btn-info navbar-btn" id="export">Exporteren naar csv</button>
@@ -135,8 +135,9 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-danger" id="button-delete-schematic">Schematic verwijderen</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Annuleren</button>
+                    <button type="button" class="btn btn-primary">Opslaan</button>
                 </div>
             </div>
         </div>
