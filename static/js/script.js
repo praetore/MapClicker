@@ -1,8 +1,15 @@
 // Defining global variables to access from other functions
-var map, num;
-var circles = [],
-        points = [],
-        schematics = {};
+var map, num, selectedSchematic, selectedOption, rectangle;
+var mapCircles = [],
+    points = [],
+    schematics = {},
+    selection = {};
+
+$('document').ready(function () {
+    initMap();
+    initIndexedData();
+    initUiControls();
+});
 
 function initMap() {
     // Enabling new cartography and themes
@@ -22,6 +29,47 @@ function initMap() {
     // Creating a map with DOM element which is just obtained
     map = new google.maps.Map(mapElement, mapOptions);
 
+    rectangle = new google.maps.Rectangle({
+        //fillColor: '#FF0000',
+        //strokeColor: '#FF0000',
+        map: map,
+        strokeWeight: 2,
+        strokeOpacity: 0.8,
+        fillOpacity: 0.35,
+        editable: true,
+        draggable: true,
+        visible: false
+    });
+
+    rectangle.setMap(map);
+
+    // add map listener to execute input actions
+    google.maps.event.addListener(map, 'click', function (e) {
+        var lat = e.latLng.lat();
+        var lng = e.latLng.lng();
+        if (selectedOption == 'single-placement' && selectedSchematic != null) {
+            var type = schematics[selectedSchematic];
+            drawCircle({"lat": lat, "lng": lng}, type);
+            addPoint(lat, lng, selectedSchematic);
+        } else if ((selectedOption == 'multiple-placement' && selectedSchematic != null)
+            || selectedOption == 'multiple-delete') {
+            if (!selection["first"]) {
+                selection["first"] = e.latLng;
+            } else {
+                selection["second"] = e.latLng;
+                $('button#place-selection').prop("disabled", false);
+                $('button#delete-selection').prop("disabled", false);
+                rectangle.setVisible(true);
+                rectangle.setBounds(new google.maps.LatLngBounds(selection["first"], selection["second"]));
+                $('button#cancel-selection').show();
+            }
+        }
+    });
+}
+
+// Load the previously indexed geopoints and schematics from the api
+function initIndexedData() {
+    // Retrieve schematics data
     $.when(
         $.ajax({
             url: 'api/schematics',
@@ -31,15 +79,20 @@ function initMap() {
         // display options of schematicfiles to add to geo-point
         for (var i = 0; i < data.num_results; i++) {
             var type = data.objects[i].schematic;
-            var option = $('<option></option>')
-                .attr("value", type)
-                .text(type);
-            $('select#schematic').append(option);
+            var selection = $('<a></a>').text(type)
+                .click(function () {
+                    selectedSchematic = $(this).text();
+                    $('li#schematics-tab > a').html(selectedSchematic + ' <span class="caret">');
+                });
+            var option = $('<li></li>');
+            option.append(selection);
+            $('li#schematics-tab > ul').append(option);
             schematics[type] = data.objects[i];
         }
         toggleSchematicSelectDisplay(Object.keys(schematics).length);
     });
 
+    // Retrieve geopoints from api and display on map
     $.when(
         $.ajax({
             url: 'api/datapoints',
@@ -52,24 +105,20 @@ function initMap() {
         // Init info display
         toggleInfoDisplays(num);
 
-        // Add indexed circles to map
+        // Add indexed mapCircles to map
         for (var i = 0; i < num; i++) {
             var point = points[i];
             var type = schematics[point.type];
             drawCircle(point, type);
         }
     });
+}
 
-    // add map listener to index get geo-points
-    google.maps.event.addListener(map, 'click', function (e) {
-        var lat = e.latLng.lat();
-        var lng = e.latLng.lng();
-        var type = $('#schematic').val();
-        addPoint(lat, lng, type);
-    });
-
+// Display ui input controls
+function initUiControls() {
     // add a listener to remove last geo-point from database
     $('button#remove-last').click(function () {
+        mapCircles.pop().setMap(null);
         deletePoint(num);
     });
 
@@ -79,16 +128,101 @@ function initMap() {
     });
 
     // add an input field on certain input-options dropdown
-    $('select#input-options').change(function () {
-        var val = $(this).find("option:selected").val();
-        toggleExtraOptionsDisplay(val);
+    $('ul#input-options > li > a').click(function () {
+        $("li#input-options-tab > a").html($(this).text() + ' <span class="caret">');
+        selectedOption = $(this).attr('data-selection');
+        toggleExtraOptionsDisplay(selectedOption);
     });
+
+    $('button#place-selection').prop("disabled", true);
+    $('button#delete-selection').prop("disabled", true);
+    $('button#cancel-selection').click(function () {
+        $(this).hide();
+        selection = {};
+        rectangle.setVisible(false);
+        $('button#place-selection').prop("disabled", true);
+        $('button#delete-selection').prop("disabled", true);
+    });
+
+    $('button#delete-selection').click(function () {
+        var recBounds = rectangle.getBounds();
+        var bounds = new google.maps.LatLngBounds(
+            new google.maps.LatLng(recBounds.getNorthEast().lat(), recBounds.getSouthWest().lng()),
+            new google.maps.LatLng(recBounds.getSouthWest().lat(), recBounds.getNorthEast().lng())
+        );
+        for (var i = 0; i < mapCircles.length; i++) {
+            var circle = mapCircles[i];
+            var inBounds = bounds.contains(circle.getCenter());
+            if (inBounds) {
+                circle.setMap(null);
+            }
+        }
+        deletePointsByBounds(bounds.getSouthWest(), bounds.getNorthEast());
+        $('button#delete-selection').prop("disabled", true);
+        $('button#cancel-selection').hide();
+        rectangle.setVisible(false);
+        selection = {};
+    });
+
+    $('button#place-selection').click(function () {
+        var count = $('input#num-option').val();
+        var bounds = rectangle.getBounds();
+        for (var i = 0; i < count; i++) {
+            var lat = _.random(bounds.getNorthEast().lat(), bounds.getSouthWest().lat());
+            var lng = _.random(bounds.getSouthWest().lng(), bounds.getNorthEast().lng());
+            var type = schematics[selectedSchematic];
+            drawCircle({ "lat": lat, "lng": lng }, type);
+            addPoint(lat, lng, selectedSchematic);
+        }
+        $('button#place-selection').prop("disabled", true);
+        $('button#cancel-selection').hide();
+        rectangle.setVisible(false);
+        selection = {};
+    });
+    toggleExtraOptionsDisplay(selectedOption);
 }
 
-google.maps.event.addDomListener(window, 'load', initMap);
+var deletePointsByBounds = function (sw, ne) {
+    var filters = [{
+            'name': 'lat',
+            'op': '<',
+            'val': ne.lat()
+        },
+        {
+            'name': 'lat',
+            'op': '>',
+            'val': sw.lat()
+        },
+        {
+            'name': 'lng',
+            'op': '>',
+            'val': sw.lng()
+        },
+        {
+            'name': 'lng',
+            'op': '<',
+            'val': ne.lng()
+        }];
+    $.ajax({
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        url: 'api/datapoints',
+        data: {"q": JSON.stringify({"filters": filters})},
+        dataType: "json",
+        type: 'GET',
+        success: function (data) {
+            _.forEach(data.objects, function (point) {
+                var idx = point.id;
+                deletePoint(idx);
+            });
+        }
+    });
+};
 
 // add a geo-point to database
-var addPoint = function (lat, long, type) {
+var addPoint = function (lat, lng, type) {
     $.ajax({
         headers: {
             'Accept': 'application/json',
@@ -98,12 +232,10 @@ var addPoint = function (lat, long, type) {
         type: 'POST',
         data: JSON.stringify({
             "lat": lat,
-            "long": long,
+            "lng": lng,
             "type": type
         }),
-        success: function (data) {
-            var file = schematics[data.type];
-            drawCircle(data, file);
+        success: function () {
             num++;
             toggleInfoDisplays(num);
         }
@@ -124,7 +256,7 @@ var drawCircle = function (point, file) {
         fillOpacity: 0.35,
         map: map,
         radius: radius,
-        center: new google.maps.LatLng(point.lat, point.long)
+        center: new google.maps.LatLng(point["lat"], point["lng"])
     };
 
     // Add point to map
@@ -132,16 +264,17 @@ var drawCircle = function (point, file) {
 
     // Handle a point click
     google.maps.event.addListener(circle, 'click', function () {
-        var canDelete = $('select#input-options').val() == 'single-delete';
-        if (canDelete) {
-            deletePointBySelection(circle);
+        if (selectedOption == 'single-delete') {
+            var lat = circle.getCenter().lat();
+            var lng = circle.getCenter().lng();
+            deletePointByLocation(lat, lng);
         }
     });
-    circles.push(circle);
+    mapCircles.push(circle);
 };
 
 // delete a geo-point from the database
-var deletePoint = function (idx, circle) {
+var deletePoint = function (idx) {
     $.ajax({
         headers: {
             'Accept': 'application/json',
@@ -150,26 +283,21 @@ var deletePoint = function (idx, circle) {
         url: 'api/datapoints/' + idx,
         type: 'DELETE',
         success: function () {
-            if (circle == null) {
-                circle = circles.pop();
-            }
-            circle.setMap(null);
             num--;
             toggleInfoDisplays(num);
         }
     });
 };
 
-var deletePointBySelection = function (circle) {
-    var lat = circle.getCenter().lat();
-    var lng = circle.getCenter().lng();
+// retrieve the id of selected point from the database, and remove the point
+var deletePointByLocation = function (lat, lng) {
     var filters = [{
             'name': 'lat',
             'op': 'eq',
             'val': lat
         },
         {
-            'name': 'long',
+            'name': 'lng',
             'op': 'eq',
             'val': lng
         }];
@@ -184,7 +312,7 @@ var deletePointBySelection = function (circle) {
         type: 'GET',
         success: function (data) {
             var idx = data.objects[0].id;
-            deletePoint(idx, circle);
+            deletePoint(idx);
         }
     });
 };
@@ -198,16 +326,32 @@ var toggleInfoDisplays = function (num) {
 
 // toggle visibility of elements belonging to certain dropdown options
 var toggleExtraOptionsDisplay = function (val) {
-    $('span#num-option').hide();
-    $('button#remove').hide();
-    $('select#schematic').hide();
+    $('li#schematics-tab').hide();
+    $('li#schematics-tab > a').hide();
+    $('li#num-option-tab').hide();
+    $('button#remove-last').hide();
+    $('button#place-selection').hide();
+    $('button#cancel-selection').hide();
+    $('button#delete-selection').hide();
+    $('button#remove-last').hide();
+    $('button#export').hide();
     if (val == 'multiple-placement') {
-        $('span#num-option').show();
+        $('li#num-option-tab').show();
+        $('li#schematics-tab').show();
+        $('li#schematics-tab > a').show();
+        $('button#place-selection').show();
+        if (num > 0) {
+            $('button#export').show();
+        }
     } else if (val == 'single-placement') {
         if (num > 0) {
-            $('button#remove').show();
+            $('button#remove-last').show();
+            $('button#export').show();
         }
-        $('select#schematic').show();
+        $('li#schematics-tab').show();
+        $('li#schematics-tab > a').show();
+    } else if (val == 'multiple-delete') {
+        $('button#delete-selection').show();
     }
 };
 
@@ -233,7 +377,7 @@ var toggleExportButtonDisplay = function (num) {
 
 // toggle the display of the schematic selection dropdown
 var toggleSchematicSelectDisplay = function (num) {
-    var elem = $('select#schematic');
+    var elem = $('li#schematics-tab');
     if (num > 0) {
         elem.show();
     } else {
@@ -243,7 +387,7 @@ var toggleSchematicSelectDisplay = function (num) {
 
 // toggle the display of number of indexed geo-points
 var toggleNumCoordsDisplay = function (num) {
-    var elem = $('span#num');
+    var elem = $('p#num');
     if (num > 0) {
         elem.show();
     } else {

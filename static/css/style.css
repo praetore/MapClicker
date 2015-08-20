@@ -3,30 +3,22 @@ html, body, #map {
 }
 
 body {
-    font-family: Arial, sans-serif;
+    padding-top: 50px;
 }
 
 body {
     margin: 0;
 }
 
-#map {
+#map, nav#selectSchematic > .container {
     width: 100%;
 }
 
-form#selections {
-    float: left;
-}
-
-div#selectSchematic {
-    height: 50px;
-}
-
-button#remove-last, span#num-option, select#schematic, button#remove-last {
+li#schematics-tab {
     display: none;
 }
 
-div#selectSchematic > * {
-    margin-top: 10px;
-    margin-left: 5px;
+div#radius-select {
+    margin: 20px;
+    width: 200px;
 }

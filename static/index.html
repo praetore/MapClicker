@@ -2,31 +2,61 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>Google Maps Clicker</title>
+    <title>Xtreme Falcons GeoTool</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.css">
+    <link rel="stylesheet" href="css/jquery.ui.1.9.2.ie.css">
+    <link rel="stylesheet" href="css/jquery-ui-1.9.2.custom.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-default navbar-fixed-top" id="selectSchematic">
+        <div class="container">
+            <a class="navbar-brand" href="#">Xtreme Falcons GeoTool</a>
+            <ul class="nav navbar-nav">
+                <li class="dropdown" id="input-options-tab">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                       aria-expanded="false">Bewerkingen <span class="caret"></span></a>
+                    <ul class="dropdown-menu" id="input-options">
+                        <li><a data-selection="single-placement" href="#">Enkelvoudig plaatsen</a></li>
+                        <li><a data-selection="single-delete" href="#">Enkelvoudig verwijderen</a></li>
+                        <li><a data-selection="multiple-placement" href="#">Meervoudig plaatsen</a></li>
+                        <li><a data-selection="multiple-delete" href="#">Meervoudig verwijderen</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown" id="schematics-tab">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                       aria-expanded="false">Selecteer schematic <span class="caret"></span></a>
+                    <ul class="dropdown-menu"></ul>
+                </li>
+                <button type="button" class="btn btn-default navbar-btn" id="export">Exporteren naar csv</button>
+                <button type="button" class="btn btn-default navbar-btn"
+                id="remove-last">Laatste punt verwijderen</button>
+                <li id="num-option-tab">
+                    <form class="navbar-form navbar-left" autocomplete="off">
+                        <div class="form-group">
+                            <input type="number" min="1" id="num-option" class="form-control"
+                                   placeholder="Aantal te plaatsen punten">
+                        </div>
+                    </form>
+                </li>
+                <button type="button" class="btn btn-default navbar-btn" id="place-selection">Plaatsen</button>
+                <button type="button" class="btn btn-default navbar-btn" id="delete-selection">Verwijderen</button>
+                <button type="button" class="btn btn-default navbar-btn" id="cancel-selection">Selectie annuleren</button>
+                <p class="navbar-text" id="num"></p>
+            </ul>
+        </div>
+    </nav>
+    <div id="map"></div>
+
     <script src="https://code.jquery.com/jquery-2.1.4.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/js/bootstrap.js"></script>
+    <script src="https://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.js"></script>
     <!-- Include Google Maps JS API -->
     <script type="text/javascript"
             src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDstP10zYrVkV0gWORTQITPLycxuxIKUeE&sensor=false">
     </script>
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-<div id="selectSchematic">
-    <span id="num"></span>
-    <select name="schematic" id="schematic"></select>
-    <button id="export">Exporteren naar csv</button>
-    <button id="remove-last">Laatste punt verwijderen</button>
-    <form id="selections" autocomplete="off">
-        <select name="input-options" id="input-options">
-            <option value="single-placement" selected="selected">Enkelvoudig plaatsen</option>
-            <option value="single-delete">Enkelvoudig verwijderen</option>
-            <!-- <option value="multiple-placement">Meervoudig plaatsen</option> -->
-            <!-- <option value="multiple-delete">Meervoudig verwijderen</option> -->
-        </select>
-        <span id="num-option">Aantal te plaatsen punten <input type="number"></span>
-    </form>
-</div>
-<div id="map"></div>
-<script src="js/script.js"></script>
+    <script src="js/script.js"></script>
 </body>
 </html>

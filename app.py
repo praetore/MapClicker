@@ -25,7 +25,7 @@ class Point(db.Model):
     __tablename__ = 'datapoints'
     id = db.Column(db.Integer, primary_key=True)
     lat = db.Column(db.Float, nullable=False)
-    long = db.Column(db.Float, nullable=False)
+    lng = db.Column(db.Float, nullable=False)
     type = db.Column(db.String, nullable=False)
 
 
