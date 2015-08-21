@@ -1,14 +1,20 @@
+import ast
 import csv
+import json
 import os
 from tempfile import NamedTemporaryFile
 
 from flask import Flask, send_file
+from flask.ext.restful import Api, Resource, reqparse
 from flask.ext.restless import APIManager
 from flask.ext.sqlalchemy import SQLAlchemy
 
 app = Flask(__name__, static_url_path='')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('OPENSHIFT_POSTGRESQL_DB_URL', 'sqlite:///app.db')
+
 db = SQLAlchemy(app)
+parser = reqparse.RequestParser()
+parser.add_argument("objects", action='append')
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 
@@ -28,12 +34,47 @@ class Point(db.Model):
     lng = db.Column(db.Float, nullable=False)
     type = db.Column(db.String, nullable=False)
 
+    def __init__(self, lat, lng, type):
+        self.lat = lat
+        self.lng = lng
+        self.type = type
+
+
+class MultiPointsHandler(Resource):
+    def post(self):
+        args = parser.parse_args()
+        points = args["objects"]
+        for i in points:
+            d = ast.literal_eval(i)
+            point = Point(d["lat"], d["lng"], d["type"])
+            db.session.add(point)
+        db.session.commit()
+        res = {
+            "num_objects": len(points),
+            "objects": points
+        }
+        return json.dumps(res)
+
+    def delete(self):
+        args = parser.parse_args()
+        points = args["objects"]
+        for i in points:
+            d = ast.literal_eval(i)
+            point = Point.query\
+                .filter_by(lat=d["lat"])\
+                .filter_by(lng=d["lng"])\
+                .filter_by(type=d["type"])\
+                .first()
+            db.session.delete(point)
+        db.session.commit()
 
 db.create_all()
 
 manager = APIManager(app, flask_sqlalchemy_db=db)
-manager.create_api(Point, methods=['GET', 'POST', 'DELETE'], results_per_page=0, allow_delete_many=True)
+manager.create_api(Point, methods=['GET', 'POST', 'DELETE'], results_per_page=0)
 manager.create_api(Schematic, methods=['GET', 'POST', 'PUT', 'DELETE'], results_per_page=0)
+api = Api(app)
+api.add_resource(MultiPointsHandler, '/api/multihandler')
 
 
 @app.route('/')
@@ -64,4 +105,4 @@ def export():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
