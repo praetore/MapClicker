@@ -1,10 +1,9 @@
 import ast
 import csv
-import json
 import os
 from tempfile import NamedTemporaryFile
 
-from flask import Flask, send_file
+from flask import Flask, send_file, jsonify
 from flask.ext.restful import Api, Resource, reqparse
 from flask.ext.restless import APIManager
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -44,16 +43,31 @@ class MultiPointsHandler(Resource):
     def post(self):
         args = parser.parse_args()
         points = args["objects"]
+
         for i in points:
             d = ast.literal_eval(i)
             point = Point(d["lat"], d["lng"], d["type"])
             db.session.add(point)
         db.session.commit()
+
+        res_points = Point.query\
+            .order_by(Point.id.desc())\
+            .limit(len(points))\
+            .all()
+
         res = {
-            "num_objects": len(points),
-            "objects": points
+            "num_results": len(points),
+            "objects": list(reversed([
+                {
+                    "id": point.id,
+                    "lat": point.lat,
+                    "lng": point.lng,
+                    "type": point.type
+                }
+                for point in res_points
+                ]))
         }
-        return json.dumps(res)
+        return jsonify(res)
 
     def delete(self):
         args = parser.parse_args()
