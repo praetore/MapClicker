@@ -116,3 +116,6 @@ def export():
          record in points]
         fname = f.name
     return send_file(fname, as_attachment=True)
+
+if __name__ == '__main__':
+    app.run()
