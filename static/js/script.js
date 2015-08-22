@@ -245,7 +245,7 @@ var addSchematicSelection = function (schematic) {
     $('ul.select-schematic').prepend(option);
 };
 
-var addMultiplePoints = function (points) {
+var addMultiplePoints = function (_points) {
     $.when(
         $.ajax({
             headers: {
@@ -254,7 +254,7 @@ var addMultiplePoints = function (points) {
             },
             url: 'api/multihandler',
             type: 'POST',
-            data: JSON.stringify({"objects": points}
+            data: JSON.stringify({"objects": _points}
             )
         })
     ).done(
@@ -434,7 +434,7 @@ var deletePointsByType = function (schematic) {
         }
     ).done(
         function () {
-            var removed = _.remove(points, function (point) {
+            _.remove(points, function (point) {
                 return point.type == schematic.schematic;
             });
             redrawCircles();
