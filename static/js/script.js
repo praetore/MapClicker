@@ -591,9 +591,8 @@ var toggleExtraOptionsDisplay = function (val) {
 
 // toggle the display of the delete last point button
 var toggleRemoveLast = function (num) {
-    console.log(num);
     var elem = $('button#remove-last');
-    if (num > 0) {
+    if (action == 'single-placement' && num > 0) {
         elem.show();
     } else {
         elem.hide();
