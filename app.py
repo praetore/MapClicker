@@ -74,11 +74,7 @@ class MultiPointsHandler(Resource):
         points = args["objects"]
         for i in points:
             d = ast.literal_eval(i)
-            point = Point.query\
-                .filter_by(lat=d["lat"])\
-                .filter_by(lng=d["lng"])\
-                .filter_by(type=d["type"])\
-                .first()
+            point = Point.query.get(d["id"])
             db.session.delete(point)
         db.session.commit()
 
