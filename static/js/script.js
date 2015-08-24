@@ -203,7 +203,6 @@ function initUiControls() {
 
     $("li#direction-tab > ul > li > a").click(function () {
         selectedDirection = $(this).attr("id");
-        console.log(selectedDirection);
         $("li#direction-tab > a").html($(this).text() + ' <span class="caret">');
     });
 
