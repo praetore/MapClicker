@@ -17,7 +17,7 @@ function initMap() {
 
     // Setting starting options of map
     var mapOptions = {
-        center: new google.maps.LatLng(51.958581, 4.024580),
+        center: new google.maps.LatLng(51.90, 4.43),
         zoom: 13,
         mapTypeId: google.maps.MapTypeId.SATELLITE,
         streetViewControl: false
@@ -236,6 +236,12 @@ function initUiControls() {
     });
 
     $('a#update-schematic-option').click(function () {
+        var rgb = hexToRgb(selectedSchematic.color);
+        $("#red").slider("value", rgb[0]);
+        $("#green").slider("value", rgb[1]);
+        $("#blue").slider("value", rgb[2]);
+        $("div#radius-slider").slider("value", selectedSchematic.radius);
+
         $('div#schematic-name-field').hide();
         $('input#create-schematic').hide();
         $('button#create-schematic').hide();
@@ -496,6 +502,26 @@ function hexFromRGB(r, g, b) {
     });
     return hex.join("").toUpperCase();
 }
+
+var hexToRgb = function(hex) {
+  if (hex.length != 7) {
+    hex = hex.match(/^#?(\w{1,2})(\w{1,2})(\w{1,2})$/);
+    hex.shift();
+    if (hex.length != 3)
+      return null;
+    var rgb = [];
+    for ( var i = 0; i < 3; i++) {
+      var value = hex[i];
+      if (value.length == 1)
+        value += value;
+      rgb.push(parseInt(value, 16));
+    }
+    return rgb;
+  } else {
+    hex = parseInt(hex.slice(1), 16);
+    return [ hex >> 16, hex >> 8 & 0xff, hex & 0xff ];
+  }
+};
 
 function refreshSwatch() {
     var red = $("#red").slider("value"),

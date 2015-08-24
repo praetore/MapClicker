@@ -29,8 +29,8 @@ class Schematic(db.Model):
 class Point(db.Model):
     __tablename__ = 'datapoints'
     id = db.Column(db.Integer, primary_key=True)
-    lat = db.Column(db.Float, nullable=False)
-    lng = db.Column(db.Float, nullable=False)
+    lat = db.Column(db.Float(precision=32), nullable=False)
+    lng = db.Column(db.Float(precision=32), nullable=False)
     type = db.Column(db.String, nullable=False)
     direction = db.Column(db.String, nullable=False)
 
@@ -80,6 +80,8 @@ class MultiPointsHandler(Resource):
             point = Point.query.get(d["id"])
             db.session.delete(point)
         db.session.commit()
+
+db.create_all()
 
 manager = APIManager(app, flask_sqlalchemy_db=db)
 manager.create_api(Point, methods=['GET', 'POST', 'DELETE'], results_per_page=0)
