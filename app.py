@@ -32,11 +32,13 @@ class Point(db.Model):
     lat = db.Column(db.Float, nullable=False)
     lng = db.Column(db.Float, nullable=False)
     type = db.Column(db.String, nullable=False)
+    direction = db.Column(db.String, nullable=False)
 
-    def __init__(self, lat, lng, type):
+    def __init__(self, lat, lng, type, direction):
         self.lat = lat
         self.lng = lng
         self.type = type
+        self.direction = direction
 
 
 class MultiPointsHandler(Resource):
@@ -46,7 +48,7 @@ class MultiPointsHandler(Resource):
 
         for i in points:
             d = ast.literal_eval(i)
-            point = Point(d["lat"], d["lng"], d["type"])
+            point = Point(d["lat"], d["lng"], d["type"], d["direction"])
             db.session.add(point)
         db.session.commit()
 
@@ -62,7 +64,8 @@ class MultiPointsHandler(Resource):
                     "id": point.id,
                     "lat": point.lat,
                     "lng": point.lng,
-                    "type": point.type
+                    "type": point.type,
+                    "direction": point.direction
                 }
                 for point in res_points
                 ]))
@@ -77,8 +80,6 @@ class MultiPointsHandler(Resource):
             point = Point.query.get(d["id"])
             db.session.delete(point)
         db.session.commit()
-
-db.create_all()
 
 manager = APIManager(app, flask_sqlalchemy_db=db)
 manager.create_api(Point, methods=['GET', 'POST', 'DELETE'], results_per_page=0)

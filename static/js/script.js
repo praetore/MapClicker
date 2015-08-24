@@ -1,5 +1,5 @@
 // Defining global variables to access from other functions
-var map, selectedSchematic, action, rectangle;
+var map, selectedSchematic, action, rectangle, selectedDirection;
 var circles = [],
     points = [],
     schematics = [],
@@ -45,9 +45,14 @@ function initMap() {
     google.maps.event.addListener(map, 'click', function (e) {
         var lat = e.latLng.lat();
         var lng = e.latLng.lng();
-        if (action == 'single-placement' && selectedSchematic != null) {
-            addPoint({"lat": lat, "lng": lng, "type": selectedSchematic.schematic});
-        } else if ((action == 'multiple-placement' && selectedSchematic != null)
+        if (action == 'single-placement' && selectedSchematic != null && selectedDirection != null) {
+            addPoint({
+                "lat": lat,
+                "lng": lng,
+                "type": selectedSchematic.schematic,
+                "direction": selectedDirection
+            });
+        } else if ((action == 'multiple-placement' && selectedSchematic != null && selectedDirection != null)
             || action == 'multiple-delete') {
             if (!selection["first"]) {
                 selection["first"] = e.latLng;
@@ -156,7 +161,12 @@ function initUiControls() {
         for (var i = 0; i < count; i++) {
             var lat = _.random(minLat, maxLat);
             var lng = _.random(minLng, maxLng);
-            var point = {"lat": lat, "lng": lng, "type": selectedSchematic.schematic};
+            var point = {
+                "lat": lat,
+                "lng": lng,
+                "type": selectedSchematic.schematic,
+                "direction": selectedDirection
+            };
             points.push(point);
         }
         addMultiplePoints(points);
@@ -190,6 +200,12 @@ function initUiControls() {
     $("#red").slider("value", 255);
     $("#green").slider("value", 140);
     $("#blue").slider("value", 60);
+
+    $("li#direction-tab > ul > li > a").click(function () {
+        selectedDirection = $(this).attr("id");
+        console.log(selectedDirection);
+        $("li#direction-tab > a").html($(this).text() + ' <span class="caret">');
+    });
 
     $("button[id*='e-schematic']").click(function () {
         var schematic;
@@ -569,6 +585,7 @@ var toggleExtraOptionsDisplay = function (val) {
     $('button#place-selection').hide();
     $('button#cancel-selection').hide();
     $('button#delete-selection').hide();
+    $('li#direction-tab').hide();
     toggleRemoveLast(0);
 
     if (val == 'multiple-placement') {
@@ -576,8 +593,10 @@ var toggleExtraOptionsDisplay = function (val) {
         $('li#schematics-tab').show();
         $('li#schematics-tab > a').show();
         $('button#place-selection').show();
+        $('li#direction-tab').show();
         toggleRemoveLast(0);
     } else if (val == 'single-placement') {
+        $('li#direction-tab').show();
         $('li#schematics-tab').show();
         $('li#schematics-tab > a').show();
         toggleRemoveLast(points.length);
