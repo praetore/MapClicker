@@ -181,7 +181,7 @@ function initUiControls() {
         value: 0,
         min: 0,
         max: 150,
-        step: 10,
+        step: 5,
         slide: function () {
             $('p#radius-num').text('Radius: ' + $(this).slider("value"))
         },
