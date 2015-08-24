@@ -43,7 +43,16 @@
                         </li>
                     </ul>
                 </li>
-                <button type="button" class="btn btn-danger navbar-btn" id="remove-last">Laatste punt verwijderen</button>
+                <li class="dropdown" id="direction-tab">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
+                    aria-expanded="false">Selecteer een richting <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#" id="north">Noord</a></li>
+                        <li><a href="#" id="east">Oost</a></li>
+                        <li><a href="#" id="south">Zuid</a></li>
+                        <li><a href="#" id="west">West</a></li>
+                    </ul>
+                </li>
                 <li id="num-option-tab">
                     <form class="navbar-form navbar-left" autocomplete="off">
                         <div class="form-group">
@@ -52,16 +61,7 @@
                         </div>
                     </form>
                 </li>
-                <li class="dropdown" id="direction-tab">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                       aria-expanded="false">Selecteer een richting <span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="#" id="north">Noord</a></li>
-                        <li><a href="#" id="east">Oost</a></li>
-                        <li><a href="#" id="south">Zuid</a></li>
-                        <li><a href="#" id="west">West</a></li>
-                    </ul>
-                </li>
+                <button type="button" class="btn btn-danger navbar-btn" id="remove-last">Laatste punt verwijderen</button>
                 <button type="button" class="btn btn-success navbar-btn" id="place-selection">Plaatsen</button>
                 <button type="button" class="btn btn-danger navbar-btn" id="delete-selection">Verwijderen</button>
                 <button type="button" class="btn btn-warning navbar-btn" id="cancel-selection">Selectie annuleren</button>
