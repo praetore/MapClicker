@@ -29,8 +29,8 @@ class Schematic(db.Model):
 class Point(db.Model):
     __tablename__ = 'datapoints'
     id = db.Column(db.Integer, primary_key=True)
-    lat = db.Column(db.Float(precision=32), nullable=False)
-    lng = db.Column(db.Float(precision=32), nullable=False)
+    lat = db.Column(db.Float(precision=64), nullable=False)
+    lng = db.Column(db.Float(precision=64), nullable=False)
     type = db.Column(db.String, nullable=False)
     direction = db.Column(db.String, nullable=False)
 
