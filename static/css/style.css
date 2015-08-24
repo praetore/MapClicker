@@ -14,10 +14,6 @@ body {
     width: 100%;
 }
 
-li#schematics-tab {
-    display: none;
-}
-
 div#radius-slider {
     margin: 0 auto;
     width: 90%;
@@ -36,6 +32,12 @@ div#radius-slider {
     margin-top: 18px;
     margin-left: 350px;
     background-image: none;
+}
+
+li#schematics-tab, li#num-option-tab, button#place-selection,
+button#cancel-selection, button#delete-selection, li#direction-tab,
+button#remove-last {
+    display: none;
 }
 
 #red .ui-slider-range {

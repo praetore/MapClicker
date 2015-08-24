@@ -235,16 +235,15 @@ function initUiControls() {
         $('h4#schematic-modal-title').text('Nieuwe schematic maken');
     });
 
-    var modalControlUpdate = function () {
-        var rgb = hexToRgb(selectedSchematic.color);
-        $("#red").slider("value", rgb[0]);
-        $("#green").slider("value", rgb[1]);
-        $("#blue").slider("value", rgb[2]);
-        $("div#radius-slider").slider("value", selectedSchematic.radius);
-    };
-
     $('a#update-schematic-option').click(function () {
-        modalControlUpdate();
+        if (selectedSchematic != null) {
+            var rgb = hexToRgb(selectedSchematic.color);
+            console.log(selectedSchematic);
+            $("#red").slider("option", "value", rgb[0]);
+            $("#green").slider("option", "value", rgb[1]);
+            $("#blue").slider("option", "value", rgb[2]);
+            $("div#radius-slider").slider("option", "value", selectedSchematic.radius);
+        }
         $('div#schematic-name-field').hide();
         $('input#create-schematic').hide();
         $('button#create-schematic').hide();
@@ -255,7 +254,35 @@ function initUiControls() {
         $('h4#schematic-modal-title').text('Bestaande schematic bewerken');
     });
 
-    $('ul#schematic-select > li > a').click(modalControlUpdate());
+    $('div#schematic-options').on('hide.bs.dropdown', function () {
+        if (selectedSchematic != null) {
+            $('div#radius-slider').slider({
+            range: "min",
+            value: selectedSchematic.radius,
+            min: 0,
+            max: 150,
+            step: 5,
+            slide: function () {
+                $('p#radius-num').text('Radius: ' + $(this).slider("value"))
+            },
+            change: function () {
+                $('p#radius-num').text('Radius: ' + $(this).slider("value"))
+            }
+            });
+            $("#red, #green, #blue").slider({
+                orientation: "horizontal",
+                range: "min",
+                max: 255,
+                value: 127,
+                slide: refreshSwatch,
+                change: refreshSwatch
+            });
+            var rgb = hexToRgb(selectedSchematic.color);
+            $("#red").slider("value", rgb[0]);
+            $("#green").slider("value", rgb[1]);
+            $("#blue").slider("value", rgb[2]);
+        }
+    });
 
     toggleExtraOptionsDisplay(action);
 }
@@ -528,7 +555,7 @@ var hexToRgb = function(hex) {
   }
 };
 
-function refreshSwatch() {
+var refreshSwatch = function() {
     var red = $("#red").slider("value"),
         green = $("#green").slider("value"),
         blue = $("#blue").slider("value"),
