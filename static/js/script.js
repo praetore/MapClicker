@@ -235,13 +235,16 @@ function initUiControls() {
         $('h4#schematic-modal-title').text('Nieuwe schematic maken');
     });
 
-    $('a#update-schematic-option').click(function () {
+    var modalControlUpdate = function () {
         var rgb = hexToRgb(selectedSchematic.color);
         $("#red").slider("value", rgb[0]);
         $("#green").slider("value", rgb[1]);
         $("#blue").slider("value", rgb[2]);
         $("div#radius-slider").slider("value", selectedSchematic.radius);
+    };
 
+    $('a#update-schematic-option').click(function () {
+        modalControlUpdate();
         $('div#schematic-name-field').hide();
         $('input#create-schematic').hide();
         $('button#create-schematic').hide();
@@ -251,6 +254,8 @@ function initUiControls() {
         $('div#schematic-options').show();
         $('h4#schematic-modal-title').text('Bestaande schematic bewerken');
     });
+
+    $('ul#schematic-select > li > a').click(modalControlUpdate());
 
     toggleExtraOptionsDisplay(action);
 }
