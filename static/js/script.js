@@ -555,13 +555,13 @@ var hexToRgb = function(hex) {
   }
 };
 
-var refreshSwatch = function() {
+var refreshSwatch = function () {
     var red = $("#red").slider("value"),
         green = $("#green").slider("value"),
         blue = $("#blue").slider("value"),
         hex = hexFromRGB(red, green, blue);
     $("#swatch").css("background-color", "#" + hex);
-}
+};
 
 var createSchematic = function (schematic, color, radius) {
     $.when($.ajax({
@@ -579,6 +579,9 @@ var createSchematic = function (schematic, color, radius) {
     })).done(function (data) {
         addSchematicSelection(data);
         schematics.push(data);
+        $('ul.select-schematic').prev()
+            .html(data.schematic + ' <span class="caret">');
+        selectedSchematic = data;
         toggleInfoDisplays();
     });
 };
